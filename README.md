@@ -47,10 +47,10 @@ bun install
 bun test          # unit tests
 bun run typecheck
 bun run sync      # regenerate src/catalog.json from command-code + live API
-bun run build     # rebuild the .opencode/plugins/oc-commandcode.js bundle (commit this)
+bun run bundle    # rebuild the dist/oc-commandcode.js bundle (commit this)
 ```
 
-The committed bundle in `dist/` is what loads at runtime — run `bun run build` after changing `src/` or syncing the catalog. CI fails if the bundle is stale. (`.opencode/plugins/oc-commandcode.js` in the repo is only a dev-time loader stub for dogfooding; installs load `dist/` via `package.json` `main`, because git-dependency packing strips dot-directories.)
+The committed bundle in `dist/` is what loads at runtime — run `bun run bundle` after changing `src/` or syncing the catalog. CI fails if the bundle is stale. (`.opencode/plugins/oc-commandcode.js` in the repo is only a dev-time loader stub for dogfooding; installs load `dist/` via `package.json` `main`, because git-dependency packing strips dot-directories. The bundle script is named `bundle`, not `build`: OpenCode's installer runs `npm install` inside git deps whose package.json declares a `build` script, which fails and breaks the install.)
 
 ## License
 

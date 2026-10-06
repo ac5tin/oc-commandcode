@@ -20,7 +20,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --target=node --packages=bundle --outfile dist/oc-commandcode.js --format esm",
+    "bundle": "bun build src/index.ts --target=node --packages=bundle --outfile dist/oc-commandcode.js --format esm",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "sync": "bun run scripts/sync.ts"
