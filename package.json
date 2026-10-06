@@ -1,0 +1,42 @@
+{
+  "name": "oc-commandcode",
+  "version": "0.1.0",
+  "description": "Command Code provider plugin for OpenCode v2 — every CommandCode model via /connect, with reasoning-effort variants and a live-synced catalog",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ac5tin/oc-commandcode.git"
+  },
+  "main": "./.opencode/plugins/oc-commandcode.js",
+  "exports": {
+    ".": "./.opencode/plugins/oc-commandcode.js"
+  },
+  "files": [
+    ".opencode",
+    "src",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --target=node --outfile .opencode/plugins/oc-commandcode.js --format esm",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "sync": "bun run scripts/sync.ts"
+  },
+  "devDependencies": {
+    "@opencode/plugin": "^2.0.24",
+    "@types/bun": "^1.2.0",
+    "typescript": "^5.9.0"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "commandcode",
+    "command-code",
+    "provider",
+    "ai",
+    "llm"
+  ]
+}
