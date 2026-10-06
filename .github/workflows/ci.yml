@@ -16,4 +16,4 @@ jobs:
       - run: bun test
       - run: bun run build
       - name: Bundle must be committed and fresh
-        run: git diff --exit-code .opencode/plugins/oc-commandcode.js
+        run: git diff --exit-code dist/oc-commandcode.js

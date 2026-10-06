@@ -8,19 +8,19 @@
     "type": "git",
     "url": "git+https://github.com/ac5tin/oc-commandcode.git"
   },
-  "main": "./.opencode/plugins/oc-commandcode.js",
+  "main": "./dist/oc-commandcode.js",
   "exports": {
-    ".": "./.opencode/plugins/oc-commandcode.js"
+    ".": "./dist/oc-commandcode.js"
   },
   "files": [
-    ".opencode",
+    "dist",
     "src",
     "scripts",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --target=node --outfile .opencode/plugins/oc-commandcode.js --format esm",
+    "build": "bun build src/index.ts --target=node --packages=bundle --outfile dist/oc-commandcode.js --format esm",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "sync": "bun run scripts/sync.ts"
