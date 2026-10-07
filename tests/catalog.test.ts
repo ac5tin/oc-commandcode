@@ -104,7 +104,7 @@ describe("buildModels", () => {
 
   test("anthropic model overrides package and baseURL for /v1/messages", () => {
     const model = one(buildModels([entry], pid))
-    expect(model.package).toBe("@opencode/ai/providers/anthropic-compatible")
+    expect(model.package).toBe("@opencode/ai/providers/anthropic")
     expect(plain(model.settings)).toEqual({ baseURL: "https://api.commandcode.ai/provider" })
   })
 

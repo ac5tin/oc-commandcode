@@ -23,7 +23,7 @@ export interface LiveModel {
   supported_endpoints?: readonly string[]
 }
 
-const ANTHROPIC_PACKAGE = "@opencode/ai/providers/anthropic-compatible"
+const ANTHROPIC_PACKAGE = "@opencode/ai/providers/anthropic"
 const ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider"
 const usd = Model.Cost.fields.input.make
 
