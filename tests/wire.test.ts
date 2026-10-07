@@ -12,13 +12,15 @@ const sse = [
 ].join("")
 
 test("claude route: caching breakpoints on the wire, cache usage parsed", async () => {
-  const entry = { id: "claude-sonnet-5-5", name: "S", context: 200_000 }
+  const entry = { id: "claude-sonnet-5-5", name: "S", context: 200_000, efforts: ["low", "max"] }
   const info = buildModels([entry], Provider.ID.make("commandcode"))[0]!
   const pkg = (await import(info.package!)) as any
   // Mirror the host: it overrides model.provider with the provider id (affects ?beta=true on the URL).
-  const model = LanguageModel.update(pkg.model(entry.id, { apiKey: "KEY", ...info.settings }), {
-    provider: "commandcode",
-  } as any)
+  const max = info.variants.find((v) => (v.id as string) === "max")!
+  const model = LanguageModel.update(
+    pkg.model(entry.id, { apiKey: "KEY", ...info.settings, ...max.settings }),
+    { provider: "commandcode" } as any,
+  )
 
   let seen: { url: string; key: string | null; body: any } | undefined
   const realFetch = globalThis.fetch
@@ -52,9 +54,14 @@ test("claude route: caching breakpoints on the wire, cache usage parsed", async 
       .filter(Boolean)
     expect(marks.length).toBeLessThanOrEqual(4)
     for (const m of marks) expect(m).toEqual({ type: "ephemeral" })
+    // Guards the effort variants: the Anthropic route only honors `effort`
+    // (output_config.effort); `reasoningEffort` would be silently dropped.
+    expect(b.output_config).toEqual({ effort: "max" })
     expect(res.usage.cacheReadInputTokens).toBe(100)
     expect(res.usage.cacheWriteInputTokens).toBe(20)
   } finally {
     globalThis.fetch = realFetch
   }
 })
+// NOTE: keep wire assertions in this one test. @opencode/ai's executor layer
+// binds fetch at first build, so a second test's fetch stub is bypassed.

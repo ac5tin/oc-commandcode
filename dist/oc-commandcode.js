@@ -9700,18 +9700,18 @@ function isAnthropicRoute(id, endpoints) {
     return endpoints.includes("/messages");
   return id.startsWith("claude-");
 }
-function toVariants(efforts) {
+function toVariants(efforts, anthropic = false) {
   if (!efforts)
     return [];
   return efforts.map((effort) => ({
     id: VariantID.make(effort),
-    settings: { reasoningEffort: effort }
+    settings: anthropic ? { effort } : { reasoningEffort: effort }
   }));
 }
 function buildModels(entries, providerID) {
   return entries.map((entry) => {
     const base = Info6.default(providerID, ID6.make(entry.id));
-    const anthropic = isAnthropicRoute(entry.id);
+    const anthropic = isAnthropicRoute(entry.id, entry.endpoints);
     return {
       ...base,
       name: entry.name,
@@ -9720,7 +9720,7 @@ function buildModels(entries, providerID) {
         input: entry.vision ? ["text", "image"] : ["text"],
         output: ["text"]
       },
-      variants: toVariants(entry.efforts),
+      variants: toVariants(entry.efforts, anthropic),
       ...entry.cost ? {
         cost: [
           {
@@ -9749,13 +9749,18 @@ function mergeCatalog(bundled, live) {
     if (!remote)
       continue;
     remaining.delete(entry.id);
-    merged.push(remote.context_length ? { ...entry, context: remote.context_length } : entry);
+    merged.push({
+      ...entry,
+      ...remote.context_length ? { context: remote.context_length } : {},
+      endpoints: remote.supported_endpoints
+    });
   }
   for (const remote of remaining.values()) {
     merged.push({
       id: remote.id,
       name: remote.name ?? remote.id.split("/").pop() ?? remote.id,
-      context: remote.context_length ?? 200000
+      context: remote.context_length ?? 200000,
+      endpoints: remote.supported_endpoints
     });
   }
   return merged;

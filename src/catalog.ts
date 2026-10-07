@@ -7,6 +7,8 @@ export interface CatalogEntry {
   output?: number
   vision?: boolean
   efforts?: string[]
+  /** Live supported_endpoints, attached by mergeCatalog; absent in the bundled catalog. */
+  endpoints?: readonly string[]
   cost?: {
     input: number
     output: number
@@ -43,12 +45,16 @@ export function isAnthropicRoute(
   return id.startsWith("claude-")
 }
 
-/** Each reasoning effort becomes a selectable variant: `commandcode/<model>#high`. */
-export function toVariants(efforts?: readonly string[]): Model.Variant[] {
+/**
+ * Each reasoning effort becomes a selectable variant: `commandcode/<model>#high`.
+ * Anthropic's Messages API takes `effort` (output_config.effort); the OpenAI
+ * routes take `reasoningEffort`. `reasoningEffort` on /messages is silently dropped.
+ */
+export function toVariants(efforts?: readonly string[], anthropic = false): Model.Variant[] {
   if (!efforts) return []
   return efforts.map((effort) => ({
     id: Model.VariantID.make(effort),
-    settings: { reasoningEffort: effort },
+    settings: anthropic ? { effort } : { reasoningEffort: effort },
   }))
 }
 
@@ -58,7 +64,7 @@ export function buildModels(
 ): Model.Info[] {
   return entries.map((entry) => {
     const base = Model.Info.default(providerID, Model.ID.make(entry.id))
-    const anthropic = isAnthropicRoute(entry.id)
+    const anthropic = isAnthropicRoute(entry.id, entry.endpoints)
     return {
       ...base,
       name: entry.name,
@@ -67,7 +73,7 @@ export function buildModels(
         input: entry.vision ? ["text", "image"] : ["text"],
         output: ["text"],
       },
-      variants: toVariants(entry.efforts),
+      variants: toVariants(entry.efforts, anthropic),
       ...(entry.cost
         ? {
             cost: [
@@ -109,7 +115,11 @@ export function mergeCatalog(
     const remote = remaining.get(entry.id)
     if (!remote) continue
     remaining.delete(entry.id)
-    merged.push(remote.context_length ? { ...entry, context: remote.context_length } : entry)
+    merged.push({
+      ...entry,
+      ...(remote.context_length ? { context: remote.context_length } : {}),
+      endpoints: remote.supported_endpoints,
+    })
   }
 
   for (const remote of remaining.values()) {
@@ -117,6 +127,7 @@ export function mergeCatalog(
       id: remote.id,
       name: remote.name ?? remote.id.split("/").pop() ?? remote.id,
       context: remote.context_length ?? 200_000,
+      endpoints: remote.supported_endpoints,
     })
   }
 

@@ -46,6 +46,14 @@ describe("toVariants", () => {
     ])
   })
 
+  test("anthropic route uses effort (output_config.effort), not reasoningEffort", () => {
+    const plain = toVariants(["low", "high"], true).map((v) => ({ id: v.id as string, settings: v.settings }))
+    expect(plain).toEqual([
+      { id: "low", settings: { effort: "low" } },
+      { id: "high", settings: { effort: "high" } },
+    ])
+  })
+
   test("passes through unusual effort names like xhigh and max", () => {
     const variants = toVariants(["low", "medium", "high", "xhigh", "max"])
     expect(variants.map((v) => v.id as string)).toEqual(["low", "medium", "high", "xhigh", "max"])
@@ -94,8 +102,16 @@ describe("buildModels", () => {
     expect(model.cost).toEqual([])
   })
 
-  test("efforts become reasoningEffort variants", () => {
+  test("efforts become effort variants on the anthropic route", () => {
     const model = one(buildModels([entry], pid))
+    expect(plain(model.variants)).toEqual([
+      { id: "low", settings: { effort: "low" } },
+      { id: "high", settings: { effort: "high" } },
+    ])
+  })
+
+  test("efforts become reasoningEffort variants on openai routes", () => {
+    const model = one(buildModels([{ ...entry, id: "deepseek/deepseek-v4-flash" }], pid))
     expect(plain(model.variants)).toEqual([
       { id: "low", settings: { reasoningEffort: "low" } },
       { id: "high", settings: { reasoningEffort: "high" } },
@@ -182,6 +198,16 @@ describe("mergeCatalog", () => {
       name: "New Model",
       context: 512_000,
     })
+  })
+
+  test("live /messages-only model with a non-claude id routes to the anthropic package", () => {
+    const merged = mergeCatalog(bundled, [
+      { id: "claude-sonnet-5" },
+      { id: "deepseek/deepseek-v4-flash" },
+      { id: "newco/claude-compatible", supported_endpoints: ["/messages"] },
+    ])
+    const model = buildModels(merged, pid).find((m) => (m.id as string) === "newco/claude-compatible")!
+    expect(model.package).toBe("@opencode/ai/providers/anthropic")
   })
 
   test("bundled models missing from the live list are dropped", () => {
