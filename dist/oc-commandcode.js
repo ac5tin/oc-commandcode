@@ -9634,7 +9634,7 @@ var catalog_default = {
 
 // src/catalog.ts
 var ANTHROPIC_PACKAGE = "@opencode/ai/providers/anthropic";
-var ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider";
+var ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider/v1";
 var usd = Cost.fields.input.make;
 var DEFAULT_OUTPUT = 131072;
 function isAnthropicRoute(id, endpoints) {

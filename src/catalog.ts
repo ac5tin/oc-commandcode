@@ -24,7 +24,7 @@ export interface LiveModel {
 }
 
 const ANTHROPIC_PACKAGE = "@opencode/ai/providers/anthropic"
-const ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider"
+const ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider/v1"
 const usd = Model.Cost.fields.input.make
 
 /** ponytail: 131072 output default matches the CLI's generous reasoning budgets; bundle sets real caps when known. */

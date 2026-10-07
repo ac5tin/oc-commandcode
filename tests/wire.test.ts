@@ -40,12 +40,18 @@ test("claude route: caching breakpoints on the wire, cache usage parsed", async 
       ],
     } as any)
 
-    expect(seen!.url).toBe("https://api.commandcode.ai/provider/messages")
+    expect(seen!.url).toBe("https://api.commandcode.ai/provider/v1/messages")
     expect(seen!.key).toBe("KEY")
     const b = seen!.body
     expect(b.tools.at(-1).cache_control).toEqual({ type: "ephemeral" })
     expect(b.system.at(-1).cache_control).toEqual({ type: "ephemeral" })
     expect(b.messages.at(-1).content.at(-1).cache_control).toEqual({ type: "ephemeral" })
+    // At most 4 breakpoints (Anthropic cap), all 5-minute (no ttl => no 2x 1h write premium).
+    const marks = [...b.tools, ...b.system, ...b.messages.flatMap((m: any) => m.content)]
+      .map((x: any) => x.cache_control)
+      .filter(Boolean)
+    expect(marks.length).toBeLessThanOrEqual(4)
+    for (const m of marks) expect(m).toEqual({ type: "ephemeral" })
     expect(res.usage.cacheReadInputTokens).toBe(100)
     expect(res.usage.cacheWriteInputTokens).toBe(20)
   } finally {
