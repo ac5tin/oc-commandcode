@@ -46,11 +46,15 @@ describe("toVariants", () => {
     ])
   })
 
-  test("anthropic route uses effort (output_config.effort), not reasoningEffort", () => {
-    const plain = toVariants(["low", "high"], true).map((v) => ({ id: v.id as string, settings: v.settings }))
+  test("anthropic route uses a body overlay for output_config.effort, not settings", () => {
+    const plain = toVariants(["low", "high"], true).map((v) => ({
+      id: v.id as string,
+      settings: v.settings,
+      body: (v as any).body,
+    }))
     expect(plain).toEqual([
-      { id: "low", settings: { effort: "low" } },
-      { id: "high", settings: { effort: "high" } },
+      { id: "low", settings: undefined, body: { output_config: { effort: "low" } } },
+      { id: "high", settings: undefined, body: { output_config: { effort: "high" } } },
     ])
   })
 
@@ -102,11 +106,11 @@ describe("buildModels", () => {
     expect(model.cost).toEqual([])
   })
 
-  test("efforts become effort variants on the anthropic route", () => {
+  test("efforts become body-overlay effort variants on the anthropic route", () => {
     const model = one(buildModels([entry], pid))
     expect(plain(model.variants)).toEqual([
-      { id: "low", settings: { effort: "low" } },
-      { id: "high", settings: { effort: "high" } },
+      { id: "low", body: { output_config: { effort: "low" } } },
+      { id: "high", body: { output_config: { effort: "high" } } },
     ])
   })
 

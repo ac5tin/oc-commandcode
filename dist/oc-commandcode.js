@@ -9705,7 +9705,7 @@ function toVariants(efforts, anthropic = false) {
     return [];
   return efforts.map((effort) => ({
     id: VariantID.make(effort),
-    settings: anthropic ? { effort } : { reasoningEffort: effort }
+    ...anthropic ? { body: { output_config: { effort } } } : { settings: { reasoningEffort: effort } }
   }));
 }
 function buildModels(entries, providerID) {

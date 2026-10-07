@@ -47,14 +47,22 @@ export function isAnthropicRoute(
 
 /**
  * Each reasoning effort becomes a selectable variant: `commandcode/<model>#high`.
- * Anthropic's Messages API takes `effort` (output_config.effort); the OpenAI
- * routes take `reasoningEffort`. `reasoningEffort` on /messages is silently dropped.
+ * OpenAI routes take `reasoningEffort` in settings (`reasoningEffort` on /messages
+ * is silently dropped). Claude variants use a `body` overlay for
+ * `output_config.effort` instead of the `effort` setting: the overlay merges
+ * post-validation, so history effort markers from mid-session variant switches
+ * are stripped (gateway-safe user/assistant-only messages) while the effort
+ * still lands on the wire. The CommandCode gateway rejects mid-conversation
+ * `system`+`output_config` messages, so `effort` in settings breaks any
+ * session that switches variants mid-conversation.
  */
 export function toVariants(efforts?: readonly string[], anthropic = false): Model.Variant[] {
   if (!efforts) return []
   return efforts.map((effort) => ({
     id: Model.VariantID.make(effort),
-    settings: anthropic ? { effort } : { reasoningEffort: effort },
+    ...(anthropic
+      ? { body: { output_config: { effort } } }
+      : { settings: { reasoningEffort: effort } }),
   }))
 }
 

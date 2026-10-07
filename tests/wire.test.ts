@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { Provider } from "@opencode/plugin"
-import { LanguageModel } from "@opencode/ai"
+import { LanguageModel, Message } from "@opencode/ai"
 import * as P from "@opencode/ai/promise"
 import { buildModels } from "../src/catalog"
 
@@ -16,9 +16,10 @@ test("claude route: caching breakpoints on the wire, cache usage parsed", async 
   const info = buildModels([entry], Provider.ID.make("commandcode"))[0]!
   const pkg = (await import(info.package!)) as any
   // Mirror the host: it overrides model.provider with the provider id (affects ?beta=true on the URL).
+  // The host applies variant body as an http.body overlay; mirror that here.
   const max = info.variants.find((v) => (v.id as string) === "max")!
   const model = LanguageModel.update(
-    pkg.model(entry.id, { apiKey: "KEY", ...info.settings, ...max.settings }),
+    pkg.model(entry.id, { apiKey: "KEY", ...info.settings, ...max.settings, body: (max as any).body }),
     { provider: "commandcode" } as any,
   )
 
@@ -54,11 +55,32 @@ test("claude route: caching breakpoints on the wire, cache usage parsed", async 
       .filter(Boolean)
     expect(marks.length).toBeLessThanOrEqual(4)
     for (const m of marks) expect(m).toEqual({ type: "ephemeral" })
-    // Guards the effort variants: the Anthropic route only honors `effort`
-    // (output_config.effort); `reasoningEffort` would be silently dropped.
+    // Guards the effort variants: output_config.effort lands on the wire via
+    // the variant body overlay (settings.reasoningEffort would be silently dropped).
     expect(b.output_config).toEqual({ effort: "max" })
     expect(res.usage.cacheReadInputTokens).toBe(100)
     expect(res.usage.cacheWriteInputTokens).toBe(20)
+
+    // Guards the mid-session variant switch: an effort marker in a long history
+    // must not produce mid-conversation system+output_config messages (the
+    // CommandCode gateway rejects role "system" in messages). Markers are
+    // stripped; the variant effort still applies top-level.
+    const pairs: any[] = []
+    for (let i = 0; i < 42; i++) {
+      pairs.push({ role: "user", content: `q${i}` })
+      pairs.push({ role: "assistant", content: `a${i}` })
+    }
+    await P.make().llm.generate({
+      model,
+      messages: [...pairs, Message.effort({ effort: "max", previous: "low" }), { role: "user", content: "again" }],
+    } as any)
+    const roles = seen!.body.messages.map((m: any) => m.role)
+    expect(roles).not.toContain("system")
+    expect(seen!.body.messages[84]).toEqual({
+      role: "user",
+      content: [{ type: "text", text: "again", cache_control: { type: "ephemeral" } }],
+    })
+    expect(seen!.body.output_config).toEqual({ effort: "max" })
   } finally {
     globalThis.fetch = realFetch
   }
