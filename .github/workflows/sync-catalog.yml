@@ -16,7 +16,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install
       - run: bun run sync
-      - run: bun run build
+      - run: bun run bundle
       - name: Open catalog sync PR
         uses: peter-evans/create-pull-request@v6
         with:

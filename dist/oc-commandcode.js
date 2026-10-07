@@ -8396,8 +8396,7 @@ var Resolved = durable({
 var Event16 = { Updated: Updated12, Resolved, Definitions: inventory(Updated12, Resolved) };
 // src/catalog.json
 var catalog_default = {
-  syncedAt: "2026-10-06T16:05:07.534Z",
-  commandCodeVersion: "1.74.3",
+  commandCodeVersion: "1.77.0",
   models: [
     {
       id: "claude-fable-5",
@@ -8442,6 +8441,7 @@ var catalog_default = {
       name: "Claude Haiku 4.5",
       context: 200000,
       vision: true,
+      output: 64000,
       cost: {
         input: 1,
         output: 5,
@@ -8537,6 +8537,7 @@ var catalog_default = {
         "xhigh",
         "max"
       ],
+      output: 128000,
       cost: {
         input: 3,
         output: 15,
@@ -8556,6 +8557,7 @@ var catalog_default = {
         "xhigh",
         "max"
       ],
+      output: 128000,
       cost: {
         input: 2,
         output: 10,
@@ -8575,6 +8577,7 @@ var catalog_default = {
         "xhigh",
         "max"
       ],
+      output: 128000,
       cost: {
         input: 2,
         output: 10,
@@ -8592,6 +8595,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 393216,
       cost: {
         input: 0.15,
         output: 0.6,
@@ -8626,6 +8630,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 393216,
       cost: {
         input: 0.15,
         output: 0.6,
@@ -8643,6 +8648,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 393216,
       cost: {
         input: 0.66,
         output: 1.98,
@@ -8661,6 +8667,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 393216,
       cost: {
         input: 0.15,
         output: 0.6,
@@ -8679,6 +8686,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 393216,
       cost: {
         input: 0.16,
         output: 0.58,
@@ -8712,6 +8720,7 @@ var catalog_default = {
         "medium",
         "high"
       ],
+      output: 65536,
       cost: {
         input: 0.25,
         output: 1.5,
@@ -8729,6 +8738,7 @@ var catalog_default = {
         "medium",
         "high"
       ],
+      output: 65536,
       cost: {
         input: 1.5,
         output: 9,
@@ -8746,6 +8756,7 @@ var catalog_default = {
         "medium",
         "high"
       ],
+      output: 65536,
       cost: {
         input: 0.3,
         output: 2.5,
@@ -8763,6 +8774,7 @@ var catalog_default = {
         "medium",
         "high"
       ],
+      output: 65536,
       cost: {
         input: 1.5,
         output: 7.5,
@@ -8797,6 +8809,7 @@ var catalog_default = {
         "medium",
         "high"
       ],
+      output: 65536,
       cost: {
         input: 1.5,
         output: 7.5,
@@ -8809,6 +8822,7 @@ var catalog_default = {
       name: "GLM-5",
       context: 200000,
       vision: false,
+      output: 202752,
       cost: {
         input: 1,
         output: 3.2,
@@ -8825,6 +8839,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 131072,
       cost: {
         input: 1.4,
         output: 4.4,
@@ -8854,6 +8869,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 131072,
       cost: {
         input: 1.4,
         output: 4.4,
@@ -8871,6 +8887,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 131072,
       cost: {
         input: 0.15,
         output: 0.5,
@@ -8888,6 +8905,7 @@ var catalog_default = {
         "high",
         "max"
       ],
+      output: 131072,
       cost: {
         input: 0.37,
         output: 1.25,
@@ -9133,6 +9151,7 @@ var catalog_default = {
       name: "Kimi K2.5",
       context: 256000,
       vision: true,
+      output: 262144,
       cost: {
         input: 0.6,
         output: 3,
@@ -9157,6 +9176,7 @@ var catalog_default = {
       name: "Kimi K2.7 Code",
       context: 256000,
       vision: true,
+      output: 262144,
       cost: {
         input: 0.95,
         output: 4,
@@ -9198,6 +9218,7 @@ var catalog_default = {
       name: "Laguna S 2.1",
       context: 256000,
       vision: false,
+      output: 32768,
       cost: {
         input: 0,
         output: 0,
@@ -9210,6 +9231,7 @@ var catalog_default = {
       name: "Ling 3.0 Flash Sante",
       context: 262144,
       vision: false,
+      output: 32768,
       cost: {
         input: 0,
         output: 0,
@@ -9227,6 +9249,7 @@ var catalog_default = {
         "medium",
         "high"
       ],
+      output: 32768,
       cost: {
         input: 0,
         output: 0,
@@ -9239,6 +9262,7 @@ var catalog_default = {
       name: "LongCat 2.0",
       context: 1048576,
       vision: false,
+      output: 131072,
       cost: {
         input: 0.3,
         output: 1.2,
@@ -9251,6 +9275,7 @@ var catalog_default = {
       name: "MiMo V2.5",
       context: 1e6,
       vision: true,
+      output: 131072,
       cost: {
         input: 0.14,
         output: 0.28,
@@ -9263,6 +9288,7 @@ var catalog_default = {
       name: "MiMo V2.5 Pro",
       context: 1e6,
       vision: false,
+      output: 131072,
       cost: {
         input: 0.435,
         output: 0.87,
@@ -9275,6 +9301,7 @@ var catalog_default = {
       name: "MiMo V2.6 Flash",
       context: 1048576,
       vision: true,
+      output: 131072,
       cost: {
         input: 0.14,
         output: 0.28,
@@ -9287,6 +9314,7 @@ var catalog_default = {
       name: "MiMo V2.6 Pro",
       context: 1048576,
       vision: true,
+      output: 131072,
       cost: {
         input: 0.435,
         output: 0.87,
@@ -9299,6 +9327,7 @@ var catalog_default = {
       name: "MiMo V2.6 Pro UltraSpeed",
       context: 1048576,
       vision: true,
+      output: 131072,
       cost: {
         input: 4.35,
         output: 8.7,
@@ -9311,6 +9340,7 @@ var catalog_default = {
       name: "MiniMax M2.5",
       context: 200000,
       vision: false,
+      output: 196608,
       cost: {
         input: 0.3,
         output: 1.2,
@@ -9328,10 +9358,29 @@ var catalog_default = {
         "medium",
         "high"
       ],
+      output: 524288,
       cost: {
         input: 0.3,
         output: 1.2,
         cache_read: 0.06,
+        cache_write: 0
+      }
+    },
+    {
+      id: "mistral/mistral-large-4",
+      name: "Mistral Large 4",
+      context: 524288,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high"
+      ],
+      output: 262144,
+      cost: {
+        input: 1.36,
+        output: 4.18,
+        cache_read: 0.14,
         cache_write: 0
       }
     },
@@ -9443,6 +9492,7 @@ var catalog_default = {
       name: "Qwen 3.7 Flash",
       context: 1e6,
       vision: true,
+      output: 131072,
       cost: {
         input: 0.03,
         output: 0.13,
@@ -9455,6 +9505,7 @@ var catalog_default = {
       name: "Qwen 3.7 Max",
       context: 1e6,
       vision: false,
+      output: 131072,
       cost: {
         input: 2.5,
         output: 7.5,
@@ -9467,6 +9518,7 @@ var catalog_default = {
       name: "Qwen 3.7 Plus",
       context: 1e6,
       vision: true,
+      output: 131072,
       cost: {
         input: 0.4,
         output: 1.6,
@@ -9484,6 +9536,7 @@ var catalog_default = {
         "medium",
         "xhigh"
       ],
+      output: 32768,
       cost: {
         input: 0.4,
         output: 3,
@@ -9501,6 +9554,7 @@ var catalog_default = {
         "medium",
         "xhigh"
       ],
+      output: 131072,
       cost: {
         input: 0.16,
         output: 0.47,
@@ -9518,6 +9572,7 @@ var catalog_default = {
         "medium",
         "xhigh"
       ],
+      output: 131072,
       cost: {
         input: 2,
         output: 6,
@@ -9535,6 +9590,7 @@ var catalog_default = {
         "medium",
         "xhigh"
       ],
+      output: 131072,
       cost: {
         input: 2,
         output: 6,
@@ -9552,6 +9608,7 @@ var catalog_default = {
         "medium",
         "xhigh"
       ],
+      output: 131072,
       cost: {
         input: 0.15,
         output: 0.47,
@@ -9605,6 +9662,7 @@ var catalog_default = {
       name: "Tencent Hy3",
       context: 262144,
       vision: false,
+      output: 262144,
       cost: {
         input: 0.14,
         output: 0.58,
@@ -9636,7 +9694,7 @@ var catalog_default = {
 var ANTHROPIC_PACKAGE = "@opencode/ai/providers/anthropic";
 var ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider/v1";
 var usd = Cost.fields.input.make;
-var DEFAULT_OUTPUT = 131072;
+var DEFAULT_OUTPUT = 64000;
 function isAnthropicRoute(id, endpoints) {
   if (endpoints && endpoints.length > 0)
     return endpoints.includes("/messages");

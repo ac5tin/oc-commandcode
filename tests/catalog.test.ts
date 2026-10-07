@@ -124,9 +124,9 @@ describe("buildModels", () => {
     expect(model.capabilities.input).toEqual(["text"])
   })
 
-  test("default output limit is generous for reasoning models", () => {
+  test("default output limit matches the official CLI's max_tokens", () => {
     const model = one(buildModels([{ ...entry, output: undefined }], pid))
-    expect(model.limit.output).toBe(131_072)
+    expect(model.limit.output).toBe(64_000)
     const known = one(buildModels([{ ...entry, output: 64 }], pid))
     expect(known.limit.output).toBe(64)
   })

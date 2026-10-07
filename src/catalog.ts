@@ -27,8 +27,8 @@ const ANTHROPIC_PACKAGE = "@opencode/ai/providers/anthropic"
 const ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider/v1"
 const usd = Model.Cost.fields.input.make
 
-/** ponytail: 131072 output default matches the CLI's generous reasoning budgets; bundle sets real caps when known. */
-const DEFAULT_OUTPUT = 131_072
+/** ponytail: 64k fallback matches the official CLI's own max_tokens default; bundle/probe data overrides per model. */
+const DEFAULT_OUTPUT = 64_000
 
 /**
  * CommandCode serves Claude models only on the Anthropic /v1/messages route and

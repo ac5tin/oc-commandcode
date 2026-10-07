@@ -7,6 +7,7 @@ import { mkdirSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { parseCostMap, parseModelEntries } from "./extract"
+import catalogJson from "../src/catalog.json"
 import type { CatalogEntry, LiveModel } from "../src/catalog"
 
 const REGISTRY = "https://registry.npmjs.org/command-code/latest"
@@ -48,17 +49,25 @@ async function main() {
   const liveIds = new Set(live.map((m) => m.id))
   console.log(`live catalog: ${live.length} models`)
 
+  // Probe-derived output caps (scripts/probe-output-limits.ts) are not
+  // re-derivable here; carry them forward so sync never wipes probe data.
+  const previous = new Map(
+    (catalogJson.models as CatalogEntry[]).map((m) => [m.id, m.output]),
+  )
+
   const models: CatalogEntry[] = extracted
     .filter((m) => liveIds.has(m.id))
     .map((m) => {
       const cost = costs.get(m.id) ?? costs.get(`anthropic:${m.id}`)
       const remote = live.find((l) => l.id === m.id)
+      const output = m.output ?? previous.get(m.id)
       return {
         id: m.id,
         name: m.name,
         context: remote?.context_length ?? m.context,
         vision: m.vision,
         efforts: m.efforts,
+        ...(output ? { output } : {}),
         ...(cost ? { cost } : {}),
       }
     })
@@ -77,11 +86,8 @@ async function main() {
 
   writeFileSync(
     OUT_PATH,
-    JSON.stringify(
-      { syncedAt: new Date().toISOString(), commandCodeVersion: meta.version, models },
-      null,
-      2,
-    ) + "\n",
+    // No timestamp: git log records it, and a stable file keeps sync idempotent.
+    JSON.stringify({ commandCodeVersion: meta.version, models }, null, 2) + "\n",
   )
   console.log(`wrote ${OUT_PATH}`)
 }

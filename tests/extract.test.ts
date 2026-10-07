@@ -27,6 +27,17 @@ describe("parseModelEntries", () => {
     expect(fast?.context).toBe(1_000_000)
   })
 
+  test("extracts declared maxOutputTokens as the output cap", () => {
+    const withCap = BUNDLE.replace(
+      'contextWindow:262144}',
+      'contextWindow:262144,maxOutputTokens:32768}',
+    )
+    const entries = parseModelEntries(withCap)
+    expect(entries.find((e) => e.id === "moonshotai/Kimi-K2.5")?.output).toBe(32_768)
+    // absent field stays absent so the CLI-default fallback applies
+    expect(entries.find((e) => e.id === "claude-sonnet-5-5")?.output).toBeUndefined()
+  })
+
   test("parses plain integer context windows", () => {
     const entries = parseModelEntries(BUNDLE)
     expect(entries.find((e) => e.id === "moonshotai/Kimi-K2.5")?.context).toBe(262_144)

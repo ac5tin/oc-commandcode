@@ -2,7 +2,7 @@ import type { CatalogEntry } from "../src/catalog"
 
 export type ExtractedModel = Pick<
   CatalogEntry,
-  "id" | "name" | "context" | "vision" | "efforts"
+  "id" | "name" | "context" | "vision" | "efforts" | "output"
 >
 
 export interface ExtractedCost {
@@ -51,12 +51,18 @@ export function parseModelEntries(source: string): ExtractedModel[] {
         const efforts = effortsRaw
           ? [...effortsRaw.matchAll(/"([^"]+)"/g)].map((m) => m[1]!)
           : undefined
+        // Only some registry entries declare an output cap; absence means "CLI default".
+        const outputRaw = blob.match(/maxOutputTokens:([\d.]+(?:e\d+)?)/)?.[1]
+        const output = outputRaw !== undefined ? parseNumber(outputRaw) : undefined
         const entry: ExtractedModel = {
           id,
           name: name.replaceAll("\\'", "'"),
           context: parseNumber(context),
           vision: blob.includes('"image"'),
           ...(efforts && efforts.length > 0 ? { efforts } : {}),
+          ...(output !== undefined && Number.isFinite(output) && output > 0
+            ? { output }
+            : {}),
         }
         if (!entries.has(id)) entries.set(id, entry)
       }

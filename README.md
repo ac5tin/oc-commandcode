@@ -38,7 +38,21 @@ commandcode/gpt-6-sol
 ## Keeping the catalog current
 
 - On startup (and hourly) the plugin fetches the live model list from `https://api.commandcode.ai/provider/v1/models`: new models appear immediately, context windows update, retired models disappear.
-- Reasoning efforts and pricing ship in a bundled catalog generated from the published `command-code` npm package; a weekly GitHub Action opens a PR to refresh it. New models show up live right away and gain their effort variants/pricing at the next plugin update.
+- Reasoning efforts, pricing, and exact output-token caps ship in a bundled catalog; the flow below refreshes them. New models show up live right away and gain efforts/pricing/caps at the next plugin update.
+
+### Maintenance flow (idempotent)
+
+Run this when CommandCode ships new models or changes limits — rerunning against an unchanged upstream leaves an empty `git diff`:
+
+```sh
+bun run sync    # models, names, context, vision, efforts, pricing from the command-code npm bundle + live models list
+bun run probe   # exact per-model output caps from the API's own validation errors (needs CMD_API_KEY)
+bun test && bunx tsc --noEmit && bun run bundle
+git add -A && git commit && git push
+opencode plugin update oc-commandcode@git+https://github.com/ac5tin/oc-commandcode.git && opencode service restart
+```
+
+`bun run probe` sends `max_tokens: 1000000` with a one-token prompt per model and reads the cap out of the rejection ("max_tokens: 1000000 > 128000 …"). Rejected 400s are not billed; a model that accepts the request completes one tiny generation (fractions of a cent). `bun run probe --all` re-verifies models that already carry a cap. Models whose caps can't be resolved — plan-gated models (403 `MODEL_NOT_IN_PLAN`), upstreams that don't validate `max_tokens`, or transient upstream 5xx — fall back to 64000 output tokens, the same `max_tokens` the official CommandCode CLI sends, and are listed at the end of the probe output so you know what's exact versus fallback.
 
 ## Development
 
