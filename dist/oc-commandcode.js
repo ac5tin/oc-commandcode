@@ -9694,6 +9694,7 @@ var catalog_default = {
 var ANTHROPIC_PACKAGE = "@opencode/ai/providers/anthropic";
 var ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider/v1";
 var usd = Cost.fields.input.make;
+var DECOY_MODEL_PREFIX = "cmd:";
 var DEFAULT_OUTPUT = 64000;
 function isAnthropicRoute(id, endpoints) {
   if (endpoints && endpoints.length > 0)
@@ -9705,7 +9706,7 @@ function toVariants(efforts, anthropic = false) {
     return [];
   return efforts.map((effort) => ({
     id: VariantID.make(effort),
-    ...anthropic ? { body: { output_config: { effort } } } : { settings: { reasoningEffort: effort } }
+    settings: anthropic ? { effort } : { reasoningEffort: effort }
   }));
 }
 function buildModels(entries, providerID) {
@@ -9735,7 +9736,12 @@ function buildModels(entries, providerID) {
         context: entry.context,
         output: entry.output ?? DEFAULT_OUTPUT
       },
-      ...anthropic ? { package: ANTHROPIC_PACKAGE, settings: { baseURL: ANTHROPIC_BASE_URL } } : {}
+      ...anthropic ? {
+        package: ANTHROPIC_PACKAGE,
+        settings: { baseURL: ANTHROPIC_BASE_URL },
+        modelID: ID6.make(DECOY_MODEL_PREFIX + entry.id),
+        body: { model: entry.id }
+      } : {}
     };
   });
 }

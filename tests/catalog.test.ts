@@ -46,15 +46,11 @@ describe("toVariants", () => {
     ])
   })
 
-  test("anthropic route uses a body overlay for output_config.effort, not settings", () => {
-    const plain = toVariants(["low", "high"], true).map((v) => ({
-      id: v.id as string,
-      settings: v.settings,
-      body: (v as any).body,
-    }))
+  test("anthropic route uses effort (top-level output_config), not reasoningEffort", () => {
+    const plain = toVariants(["low", "high"], true).map((v) => ({ id: v.id as string, settings: v.settings }))
     expect(plain).toEqual([
-      { id: "low", settings: undefined, body: { output_config: { effort: "low" } } },
-      { id: "high", settings: undefined, body: { output_config: { effort: "high" } } },
+      { id: "low", settings: { effort: "low" } },
+      { id: "high", settings: { effort: "high" } },
     ])
   })
 
@@ -79,12 +75,17 @@ describe("buildModels", () => {
     cost: { input: 10, output: 50, cache_read: 1, cache_write: 12.5 },
   }
 
-  test("sets id, modelID, name, and context limit", () => {
+  test("sets id, name, and context limit", () => {
     const model = one(buildModels([entry], pid))
     expect(plain(model.id)).toBe("claude-fable-5")
-    expect(plain(model.modelID)).toBe("claude-fable-5")
     expect(model.name).toBe("Claude Fable 5")
     expect(model.limit.context).toBe(1_000_000)
+  })
+
+  test("anthropic route: decoy modelID defeats Claude-5 heuristics, body overlay restores wire id", () => {
+    const model = one(buildModels([entry], pid))
+    expect(plain(model.modelID)).toBe("cmd:claude-fable-5")
+    expect(plain(model.body)).toEqual({ model: "claude-fable-5" })
   })
 
   test("carries cache-aware cost per million tokens", () => {
@@ -106,11 +107,11 @@ describe("buildModels", () => {
     expect(model.cost).toEqual([])
   })
 
-  test("efforts become body-overlay effort variants on the anthropic route", () => {
+  test("efforts become effort variants on the anthropic route", () => {
     const model = one(buildModels([entry], pid))
     expect(plain(model.variants)).toEqual([
-      { id: "low", body: { output_config: { effort: "low" } } },
-      { id: "high", body: { output_config: { effort: "high" } } },
+      { id: "low", settings: { effort: "low" } },
+      { id: "high", settings: { effort: "high" } },
     ])
   })
 
@@ -132,6 +133,8 @@ describe("buildModels", () => {
     const model = one(buildModels([{ ...entry, id: "deepseek/deepseek-v4-flash" }], pid))
     expect(model.package).toBeUndefined()
     expect(model.settings).toBeUndefined()
+    expect(plain(model.modelID)).toBe("deepseek/deepseek-v4-flash")
+    expect(model.body).toBeUndefined()
   })
 
   test("vision flag adds image to input capabilities", () => {
@@ -212,6 +215,8 @@ describe("mergeCatalog", () => {
     ])
     const model = buildModels(merged, pid).find((m) => (m.id as string) === "newco/claude-compatible")!
     expect(model.package).toBe("@opencode/ai/providers/anthropic")
+    expect(plain(model.modelID)).toBe("cmd:newco/claude-compatible")
+    expect(plain(model.body)).toEqual({ model: "newco/claude-compatible" })
   })
 
   test("bundled models missing from the live list are dropped", () => {

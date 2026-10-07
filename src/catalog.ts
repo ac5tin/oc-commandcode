@@ -29,6 +29,15 @@ const ANTHROPIC_PACKAGE = "@opencode/ai/providers/anthropic"
 const ANTHROPIC_BASE_URL = "https://api.commandcode.ai/provider/v1"
 const usd = Model.Cost.fields.input.make
 
+/**
+ * Defeats @opencode/ai's claudeVersion regex, which only matches `claude-`
+ * after start-of-string, `.` or `/` — `:` never matches. Without a parseable
+ * Claude version, the protocol wraps system history into user turns (classic
+ * Messages) and strips effort markers instead of emitting mid-conversation
+ * `system` messages, which the CommandCode gateway 400s.
+ */
+const DECOY_MODEL_PREFIX = "cmd:"
+
 /** ponytail: 64k fallback matches the official CLI's own max_tokens default; bundle/probe data overrides per model. */
 const DEFAULT_OUTPUT = 64_000
 
@@ -47,22 +56,16 @@ export function isAnthropicRoute(
 
 /**
  * Each reasoning effort becomes a selectable variant: `commandcode/<model>#high`.
- * OpenAI routes take `reasoningEffort` in settings (`reasoningEffort` on /messages
- * is silently dropped). Claude variants use a `body` overlay for
- * `output_config.effort` instead of the `effort` setting: the overlay merges
- * post-validation, so history effort markers from mid-session variant switches
- * are stripped (gateway-safe user/assistant-only messages) while the effort
- * still lands on the wire. The CommandCode gateway rejects mid-conversation
- * `system`+`output_config` messages, so `effort` in settings breaks any
- * session that switches variants mid-conversation.
+ * OpenAI routes take `reasoningEffort`; the Anthropic Messages route takes
+ * `effort`, landing as top-level `output_config.effort`. That is safe here
+ * because the decoy modelID makes the protocol strip history effort markers,
+ * so the variant setting is the only effort on the request.
  */
 export function toVariants(efforts?: readonly string[], anthropic = false): Model.Variant[] {
   if (!efforts) return []
   return efforts.map((effort) => ({
     id: Model.VariantID.make(effort),
-    ...(anthropic
-      ? { body: { output_config: { effort } } }
-      : { settings: { reasoningEffort: effort } }),
+    settings: anthropic ? { effort } : { reasoningEffort: effort },
   }))
 }
 
@@ -99,7 +102,18 @@ export function buildModels(
         output: entry.output ?? DEFAULT_OUTPUT,
       },
       ...(anthropic
-        ? { package: ANTHROPIC_PACKAGE, settings: { baseURL: ANTHROPIC_BASE_URL } }
+        ? {
+            package: ANTHROPIC_PACKAGE,
+            settings: { baseURL: ANTHROPIC_BASE_URL },
+            // "Classic Messages" mode for the CommandCode gateway: a decoy
+            // modelID turns off the Claude-5 native behaviors (mid-conversation
+            // `system` messages, effort markers, thinking-block binding) that
+            // the gateway rejects, and the body overlay restores the real wire
+            // model id. Info.id stays the live-catalog id everywhere else
+            // (picker, cost, limits, live-refresh merge keys).
+            modelID: Model.ID.make(DECOY_MODEL_PREFIX + entry.id),
+            body: { model: entry.id },
+          }
         : {}),
     }
   })

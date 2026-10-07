@@ -15,11 +15,17 @@ test("claude route: caching breakpoints on the wire, cache usage parsed", async 
   const entry = { id: "claude-sonnet-5-5", name: "S", context: 200_000, efforts: ["low", "max"] }
   const info = buildModels([entry], Provider.ID.make("commandcode"))[0]!
   const pkg = (await import(info.package!)) as any
-  // Mirror the host: it overrides model.provider with the provider id (affects ?beta=true on the URL).
-  // The host applies variant body as an http.body overlay; mirror that here.
+  // Mirror the host: pkg.model(info.modelID ?? info.id, { ...settings,
+  // ...variant.settings, headers, body: info.body }), then override
+  // model.provider with the provider id (affects ?beta=true on the URL).
   const max = info.variants.find((v) => (v.id as string) === "max")!
   const model = LanguageModel.update(
-    pkg.model(entry.id, { apiKey: "KEY", ...info.settings, ...max.settings, body: (max as any).body }),
+    pkg.model((info.modelID ?? entry.id) as string, {
+      apiKey: "KEY",
+      ...info.settings,
+      ...max.settings,
+      ...(info.body ? { body: info.body } : {}),
+    }),
     { provider: "commandcode" } as any,
   )
 
@@ -46,6 +52,9 @@ test("claude route: caching breakpoints on the wire, cache usage parsed", async 
     expect(seen!.url).toBe("https://api.commandcode.ai/provider/v1/messages")
     expect(seen!.key).toBe("KEY")
     const b = seen!.body
+    // The wire model is the real catalog id, restored by the body overlay,
+    // even though the LanguageModel id is the cmd: decoy.
+    expect(b.model).toBe("claude-sonnet-5-5")
     expect(b.tools.at(-1).cache_control).toEqual({ type: "ephemeral" })
     expect(b.system.at(-1).cache_control).toEqual({ type: "ephemeral" })
     expect(b.messages.at(-1).content.at(-1).cache_control).toEqual({ type: "ephemeral" })
@@ -56,15 +65,16 @@ test("claude route: caching breakpoints on the wire, cache usage parsed", async 
     expect(marks.length).toBeLessThanOrEqual(4)
     for (const m of marks) expect(m).toEqual({ type: "ephemeral" })
     // Guards the effort variants: output_config.effort lands on the wire via
-    // the variant body overlay (settings.reasoningEffort would be silently dropped).
+    // the variant `effort` setting (reasoningEffort would be silently dropped).
     expect(b.output_config).toEqual({ effort: "max" })
     expect(res.usage.cacheReadInputTokens).toBe(100)
     expect(res.usage.cacheWriteInputTokens).toBe(20)
 
-    // Guards the mid-session variant switch: an effort marker in a long history
-    // must not produce mid-conversation system+output_config messages (the
-    // CommandCode gateway rejects role "system" in messages). Markers are
-    // stripped; the variant effort still applies top-level.
+    // Regression: the CommandCode gateway 400s any messages[].role "system"
+    // ("Invalid input at messages.84.role"). A long history with a date-notice
+    // system message and a mid-session effort marker (the exact failing
+    // session shape) must lower to user/assistant only, with the real wire
+    // model id and the variant effort still applied.
     const pairs: any[] = []
     for (let i = 0; i < 42; i++) {
       pairs.push({ role: "user", content: `q${i}` })
@@ -72,14 +82,18 @@ test("claude route: caching breakpoints on the wire, cache usage parsed", async 
     }
     await P.make().llm.generate({
       model,
-      messages: [...pairs, Message.effort({ effort: "max", previous: "low" }), { role: "user", content: "again" }],
+      messages: [
+        ...pairs.slice(0, 80),
+        { role: "system", content: [{ type: "text", text: "Today's date is now: Wed Oct 07 2026" }] },
+        ...pairs.slice(80),
+        Message.effort({ effort: "max", previous: "low" }),
+        { role: "user", content: "again" },
+      ],
     } as any)
     const roles = seen!.body.messages.map((m: any) => m.role)
     expect(roles).not.toContain("system")
-    expect(seen!.body.messages[84]).toEqual({
-      role: "user",
-      content: [{ type: "text", text: "again", cache_control: { type: "ephemeral" } }],
-    })
+    expect(roles.at(-1)).toBe("user")
+    expect(seen!.body.model).toBe("claude-sonnet-5-5")
     expect(seen!.body.output_config).toEqual({ effort: "max" })
   } finally {
     globalThis.fetch = realFetch

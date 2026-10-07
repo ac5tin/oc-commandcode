@@ -32,7 +32,7 @@ commandcode/gpt-6-sol
 ```
 
 - **Thinking effort** — models that support reasoning expose their effort levels as variants (`#low`, `#medium`, `#high`, `#xhigh`, `#max`, and `#off` where offered). Effort levels come from Command Code's own model registry.
-- **Protocol routing** — Claude models are served on the Anthropic `/v1/messages` endpoint; everything else uses OpenAI chat completions. The plugin routes each model automatically.
+- **Protocol routing** — Claude models are served on the Anthropic `/v1/messages` endpoint; everything else uses OpenAI chat completions. The plugin routes each model automatically. Claude models run in "classic Messages" mode: the CommandCode gateway rejects mid-conversation `system`-role messages that Claude 5 models otherwise get, so the plugin pins the protocol to the classic behavior (system history wrapped into user turns) while keeping the real model id on the wire.
 - **Token caching** — per-model cache-read and cache-write rates are bundled so cost tracking bills cached tokens at their real price, and prompt caching itself is applied by OpenCode's provider runtime (Anthropic `cache_control` breakpoints on `/messages`; automatic server-side caching on OpenAI routes).
 
 ## Keeping the catalog current
