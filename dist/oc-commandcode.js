@@ -8396,7 +8396,7 @@ var Resolved = durable({
 var Event16 = { Updated: Updated12, Resolved, Definitions: inventory(Updated12, Resolved) };
 // src/catalog.json
 var catalog_default = {
-  commandCodeVersion: "1.77.0",
+  commandCodeVersion: "1.79.1",
   models: [
     {
       id: "claude-fable-5",
@@ -8447,6 +8447,25 @@ var catalog_default = {
         output: 5,
         cache_read: 0.1,
         cache_write: 1.25
+      }
+    },
+    {
+      id: "claude-haiku-5-5",
+      name: "Claude Haiku 5.5",
+      context: 1e6,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      cost: {
+        input: 0.1,
+        output: 0.5,
+        cache_read: 0.01,
+        cache_write: 0.125
       }
     },
     {
@@ -8910,6 +8929,25 @@ var catalog_default = {
         input: 0.37,
         output: 1.25,
         cache_read: 0.075,
+        cache_write: 0
+      }
+    },
+    {
+      id: "stealth/glyph-cluster:free",
+      name: "Glyph Cluster",
+      context: 256000,
+      vision: false,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      output: 256000,
+      cost: {
+        input: 0,
+        output: 0,
+        cache_read: 0,
         cache_write: 0
       }
     },
