@@ -1,6 +1,7 @@
 import { Integration, Plugin, Provider } from "@opencode/plugin"
 import catalogJson from "./catalog.json"
 import { buildModels, mergeCatalog, type LiveModel } from "./catalog"
+import { applyApiKeyAuth } from "./auth"
 
 const PROVIDER_ID = "commandcode"
 const OPENAI_PACKAGE = "@opencode/ai/providers/openai-compatible"
@@ -51,6 +52,24 @@ export default Plugin.define({
         models: source.models,
       })
     })
+
+    // The host attaches the integration credential as Authorization: Bearer,
+    // which the gateway rejects on the Anthropic /messages route (403). Swap
+    // it for x-api-key there; OpenAI-route models keep Bearer.
+    await ctx.session.hook(
+      "http.request",
+      async (event) => {
+        try {
+          const connection = await ctx.integration.connection.active(PROVIDER_ID)
+          const credential = connection ? await ctx.integration.connection.resolve(connection) : undefined
+          applyApiKeyAuth(event.request.headers, event.request.url, credential)
+        } catch {
+          // auth bookkeeping must never kill the request; the gateway's own
+          // 401/403 error is the better failure surface
+        }
+      },
+      { providerID },
+    )
 
     const refresh = async () => {
       const live = await fetchLiveModels()

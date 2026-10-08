@@ -9810,6 +9810,25 @@ function mergeCatalog(bundled, live) {
   return merged;
 }
 
+// src/auth.ts
+function applyApiKeyAuth(headers, url, credential) {
+  let pathname;
+  try {
+    pathname = new URL(url).pathname;
+  } catch {
+    return;
+  }
+  if (!pathname.endsWith("/messages"))
+    return;
+  if (typeof credential !== "object" || credential === null)
+    return;
+  const { type, key } = credential;
+  if (type !== "key" || !key)
+    return;
+  headers.set("x-api-key", key);
+  headers.delete("authorization");
+}
+
 // src/index.ts
 var PROVIDER_ID = "commandcode";
 var OPENAI_PACKAGE = "@opencode/ai/providers/openai-compatible";
@@ -9857,6 +9876,13 @@ var src_default = define({
         models: source.models
       });
     });
+    await ctx.session.hook("http.request", async (event) => {
+      try {
+        const connection = await ctx.integration.connection.active(PROVIDER_ID);
+        const credential = connection ? await ctx.integration.connection.resolve(connection) : undefined;
+        applyApiKeyAuth(event.request.headers, event.request.url, credential);
+      } catch {}
+    }, { providerID });
     const refresh = async () => {
       const live = await fetchLiveModels();
       if (!live)
