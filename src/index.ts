@@ -2,6 +2,7 @@ import { Integration, Plugin, Provider } from "@opencode/plugin"
 import catalogJson from "./catalog.json"
 import { buildModels, mergeCatalog, type LiveModel } from "./catalog"
 import { applyApiKeyAuth } from "./auth"
+import { retryAuthFlake, type Replayable } from "./retry"
 
 const PROVIDER_ID = "commandcode"
 const OPENAI_PACKAGE = "@opencode/ai/providers/openai-compatible"
@@ -56,6 +57,7 @@ export default Plugin.define({
     // Classic-Messages wire shaping for the gateway: it 403s API-key requests
     // that carry any anthropic-beta header (native Claude-5 path) — see
     // src/auth.ts. No-op for OpenAI-route models.
+    const pending = new WeakMap<object, Replayable>()
     await ctx.session.hook(
       "http.request",
       async (event) => {
@@ -67,6 +69,30 @@ export default Plugin.define({
           // auth bookkeeping must never kill the request; the gateway's own
           // 401/403 error is the better failure surface
         }
+        try {
+          // Shaped clone for a possible resend; the fetch consumes the original
+          // body, so the replay must be captured here — see src/retry.ts.
+          pending.set(event.request, event.request.clone())
+        } catch {
+          // body already in use; this request just skips the retry path
+        }
+      },
+      { providerID },
+    )
+
+    // The gateway intermittently 403s valid requests from its Hong Kong edge
+    // (CommandCodeAI/command-code#945, #946) — resend on the already-shaped
+    // wire and hand the runtime the good response when one comes back.
+    await ctx.session.hook(
+      "http.response",
+      async (event) => {
+        const replay = pending.get(event.request)
+        if (!replay) return
+        pending.delete(event.request)
+        if (!event.request.url.startsWith(BASE_URL)) return
+        const retried = await retryAuthFlake(event.response, replay)
+        if (retried !== event.response) console.error("[commandcode] gateway auth flake — re-sent")
+        event.response = retried
       },
       { providerID },
     )

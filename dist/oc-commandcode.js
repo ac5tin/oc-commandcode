@@ -9830,6 +9830,29 @@ function applyApiKeyAuth(headers, url, credential) {
   headers.delete("authorization");
 }
 
+// src/retry.ts
+var AUTH_FLAKE_MESSAGE = "Authentication failed. Please check your credentials.";
+function isGatewayAuthFlake(status, body) {
+  return status === 403 && body.includes("permission_error") && body.includes(AUTH_FLAKE_MESSAGE);
+}
+async function retryAuthFlake(response, replay, options = {}) {
+  if (!replay)
+    return response;
+  const attempts = options.attempts ?? 2;
+  const delays = options.delays ?? [400, 1200];
+  const doFetch = options.fetch ?? ((input) => fetch(input));
+  let current = response;
+  for (let retry = 0;retry < attempts; retry++) {
+    if (!isGatewayAuthFlake(current.status, await current.clone().text()))
+      return current;
+    const delay = delays[Math.min(retry, delays.length - 1)] ?? 0;
+    if (delay > 0)
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    current = await doFetch(replay.clone());
+  }
+  return current;
+}
+
 // src/index.ts
 var PROVIDER_ID = "commandcode";
 var OPENAI_PACKAGE = "@opencode/ai/providers/openai-compatible";
@@ -9877,12 +9900,28 @@ var src_default = define({
         models: source.models
       });
     });
+    const pending = new WeakMap;
     await ctx.session.hook("http.request", async (event) => {
       try {
         const connection = await ctx.integration.connection.active(PROVIDER_ID);
         const credential = connection ? await ctx.integration.connection.resolve(connection) : undefined;
         applyApiKeyAuth(event.request.headers, event.request.url, credential);
       } catch {}
+      try {
+        pending.set(event.request, event.request.clone());
+      } catch {}
+    }, { providerID });
+    await ctx.session.hook("http.response", async (event) => {
+      const replay = pending.get(event.request);
+      if (!replay)
+        return;
+      pending.delete(event.request);
+      if (!event.request.url.startsWith(BASE_URL))
+        return;
+      const retried = await retryAuthFlake(event.response, replay);
+      if (retried !== event.response)
+        console.error("[commandcode] gateway auth flake — re-sent");
+      event.response = retried;
     }, { providerID });
     const refresh = async () => {
       const live = await fetchLiveModels();
