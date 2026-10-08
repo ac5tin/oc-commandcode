@@ -9820,6 +9820,7 @@ function applyApiKeyAuth(headers, url, credential) {
   }
   if (!pathname.endsWith("/messages"))
     return;
+  headers.delete("anthropic-beta");
   if (typeof credential !== "object" || credential === null)
     return;
   const { type, key } = credential;
