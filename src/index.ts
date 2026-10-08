@@ -53,9 +53,9 @@ export default Plugin.define({
       })
     })
 
-    // The host attaches the integration credential as Authorization: Bearer,
-    // which the gateway rejects on the Anthropic /messages route (403). Swap
-    // it for x-api-key there; OpenAI-route models keep Bearer.
+    // Classic-Messages wire shaping for the gateway: it 403s API-key requests
+    // that carry any anthropic-beta header (native Claude-5 path) — see
+    // src/auth.ts. No-op for OpenAI-route models.
     await ctx.session.hook(
       "http.request",
       async (event) => {
