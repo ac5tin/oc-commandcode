@@ -8396,7 +8396,7 @@ var Resolved = durable({
 var Event16 = { Updated: Updated12, Resolved, Definitions: inventory(Updated12, Resolved) };
 // src/catalog.json
 var catalog_default = {
-  commandCodeVersion: "1.79.1",
+  commandCodeVersion: "1.79.2",
   models: [
     {
       id: "claude-fable-5",
@@ -8600,7 +8600,7 @@ var catalog_default = {
       cost: {
         input: 2,
         output: 10,
-        cache_read: 0.2,
+        cache_read: 0.1,
         cache_write: 2.5
       }
     },
