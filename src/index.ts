@@ -2,6 +2,7 @@ import { Integration, Plugin, Provider } from "@opencode/plugin"
 import catalogJson from "./catalog.json"
 import { buildModels, mergeCatalog, type LiveModel } from "./catalog"
 import { applyApiKeyAuth } from "./auth"
+import { stripThinking } from "./thinking"
 import { retryAuthFlake, type Replayable } from "./retry"
 
 const PROVIDER_ID = "commandcode"
@@ -56,7 +57,8 @@ export default Plugin.define({
 
     // Classic-Messages wire shaping for the gateway: it 403s API-key requests
     // that carry any anthropic-beta header (native Claude-5 path) — see
-    // src/auth.ts. No-op for OpenAI-route models.
+    // src/auth.ts — and rejects signed thinking blocks replayed after a shape
+    // change — see src/thinking.ts. No-op for OpenAI-route models.
     const pending = new WeakMap<object, Replayable>()
     await ctx.session.hook(
       "http.request",
@@ -70,9 +72,15 @@ export default Plugin.define({
           // 401/403 error is the better failure surface
         }
         try {
+          const original = event.request
+          const request = await stripThinking(original)
+          if (request !== original) event.request = request
           // Shaped clone for a possible resend; the fetch consumes the original
-          // body, so the replay must be captured here — see src/retry.ts.
-          pending.set(event.request, event.request.clone())
+          // body, so the replay must be captured here — see src/retry.ts. Both
+          // requests are keyed because the response hook may be handed either.
+          const replay = request.clone()
+          pending.set(original, replay)
+          if (request !== original) pending.set(request, replay)
         } catch {
           // body already in use; this request just skips the retry path
         }

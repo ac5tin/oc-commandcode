@@ -6678,7 +6678,7 @@ var Overlays = {
   headers: Record(String5, String5).pipe(optional3),
   body: Record(String5, Any2).pipe(optional3)
 };
-var Request2 = Struct({
+var Request3 = Struct({
   settings: Settings.pipe(withConstructorDefault2(succeed5({}))),
   headers: Record(String5, String5),
   body: Record(String5, Any2)
@@ -6837,12 +6837,12 @@ var RequestFields = {
   source: Source.pipe(optional3),
   message: String5.pipe(optional3)
 };
-var Request3 = Struct({
+var Request4 = Struct({
   id: ID7,
   ...RequestFields
 }).annotate({ identifier: "Permission.Request" });
 var Reply2 = Literals(["once", "always", "reject"]).annotate({ identifier: "Permission.Reply" });
-var Asked = ephemeral({ type: "permission.asked", schema: Request3.fields });
+var Asked = ephemeral({ type: "permission.asked", schema: Request4.fields });
 var Replied2 = ephemeral({
   type: "permission.replied",
   schema: {
@@ -6869,7 +6869,7 @@ var Info7 = Struct({
   id: ID8,
   name: Name,
   model: Ref4.pipe(optional3),
-  request: Request2,
+  request: Request3,
   system: String5.pipe(optional3),
   description: String5.pipe(optional3),
   mode: Literals(["subagent", "primary", "all"]),
@@ -9830,6 +9830,68 @@ function applyApiKeyAuth(headers, url, credential) {
   headers.delete("authorization");
 }
 
+// src/thinking.ts
+function stripThinkingBlocks(body) {
+  let parsed;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return null;
+  }
+  if (typeof parsed !== "object" || parsed === null)
+    return null;
+  const root = parsed;
+  if (!Array.isArray(root.messages))
+    return null;
+  let changed = false;
+  const kept = [];
+  for (const message of root.messages) {
+    if (typeof message !== "object" || message === null) {
+      kept.push(message);
+      continue;
+    }
+    const { role, content } = message;
+    if (role !== "assistant" || !Array.isArray(content)) {
+      kept.push(message);
+      continue;
+    }
+    const blocks = content.filter((block) => typeof block !== "object" || block === null || block.type !== "thinking" && block.type !== "redacted_thinking");
+    if (blocks.length === content.length) {
+      kept.push(message);
+      continue;
+    }
+    changed = true;
+    if (blocks.length === 0)
+      continue;
+    kept.push({ ...message, content: blocks });
+  }
+  if (!changed)
+    return null;
+  return JSON.stringify({ ...root, messages: kept });
+}
+async function stripThinking(request) {
+  let pathname;
+  try {
+    pathname = new URL(request.url).pathname;
+  } catch {
+    return request;
+  }
+  if (!pathname.endsWith("/messages"))
+    return request;
+  let body;
+  try {
+    body = await request.clone().text();
+  } catch {
+    return request;
+  }
+  const stripped = stripThinkingBlocks(body);
+  if (stripped === null)
+    return request;
+  const rewritten = new Request(request, { body: stripped });
+  rewritten.headers.delete("content-length");
+  return rewritten;
+}
+
 // src/retry.ts
 var AUTH_FLAKE_MESSAGE = "Authentication failed. Please check your credentials.";
 function isGatewayAuthFlake(status, body) {
@@ -9908,7 +9970,14 @@ var src_default = define({
         applyApiKeyAuth(event.request.headers, event.request.url, credential);
       } catch {}
       try {
-        pending.set(event.request, event.request.clone());
+        const original = event.request;
+        const request = await stripThinking(original);
+        if (request !== original)
+          event.request = request;
+        const replay = request.clone();
+        pending.set(original, replay);
+        if (request !== original)
+          pending.set(request, replay);
       } catch {}
     }, { providerID });
     await ctx.session.hook("http.response", async (event) => {
