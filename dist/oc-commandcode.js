@@ -9851,6 +9851,11 @@ function stripThinkingBlocks(body) {
       continue;
     }
     const { role, content } = message;
+    if (role !== "user" && role !== "assistant") {
+      changed = true;
+      kept.push({ ...message, role: "user" });
+      continue;
+    }
     if (role !== "assistant" || !Array.isArray(content)) {
       kept.push(message);
       continue;

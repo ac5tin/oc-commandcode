@@ -61,6 +61,25 @@ test("user messages and string content are never touched", () => {
   expect(stripThinkingBlocks(body)).toBeNull()
 })
 
+test("non user/assistant roles are folded to user turns (gateway 400s them)", () => {
+  const body = stripThinkingBlocks(
+    JSON.stringify({
+      messages: [
+        { role: "user", content: "hi" },
+        { role: "assistant", content: [{ type: "text", text: "yo" }] },
+        { role: "system", content: "Today's date is now: Sat Oct 17 2026" },
+        { role: "tool", content: [{ type: "tool_result", tool_use_id: "t1", content: "ok" }] },
+        { role: "user", content: "again" },
+      ],
+    }),
+  )
+  expect(body).not.toBeNull()
+  const parsed = JSON.parse(body!) as any
+  expect(parsed.messages.map((m: any) => m.role)).toEqual(["user", "assistant", "user", "user", "user"])
+  expect(parsed.messages[2]).toEqual({ role: "user", content: "Today's date is now: Sat Oct 17 2026" })
+  expect(parsed.messages[3].role).toBe("user")
+})
+
 test("assistant message emptied by the strip is dropped, not sent as content: []", () => {
   const body = stripThinkingBlocks(
     JSON.stringify({

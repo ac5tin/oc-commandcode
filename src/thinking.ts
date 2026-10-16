@@ -8,8 +8,15 @@
  * detection (src/catalog.ts) and the gateway rejects any anthropic-beta header
  * (src/auth.ts) — so outbound /messages bodies never carry signed blocks.
  *
- * Returns the re-serialized body when at least one block was removed, null
- * when nothing changed or the body cannot be parsed (the caller passes it on).
+ * Returns the re-serialized body when at least one block was removed or a
+ * role was folded, null when nothing changed or the body cannot be parsed
+ * (the caller passes it on).
+ *
+ * The same pass folds any `messages[].role` outside user/assistant into a
+ * user turn: the CommandCode gateway 400s them ("Invalid input at
+ * messages.N.role"), and replayed sessions have leaked mid-conversation
+ * `system` date notices past the decoy's classic-Messages lowering
+ * (src/catalog.ts).
  */
 export function stripThinkingBlocks(body: string): string | null {
   let parsed: unknown
@@ -30,6 +37,12 @@ export function stripThinkingBlocks(body: string): string | null {
       continue
     }
     const { role, content } = message as { role?: unknown; content?: unknown }
+    if (role !== "user" && role !== "assistant") {
+      changed = true
+      // Adjacent same-role turns are fine — the API merges them.
+      kept.push({ ...(message as Record<string, unknown>), role: "user" })
+      continue
+    }
     if (role !== "assistant" || !Array.isArray(content)) {
       kept.push(message)
       continue
@@ -56,9 +69,10 @@ export function stripThinkingBlocks(body: string): string | null {
 }
 
 /**
- * Request-side wiring: apply the strip to /messages bodies only (mirrors the
- * route scope in src/auth.ts). Returns `request` itself when there is nothing
- * to strip, so untouched requests keep flowing byte-identical.
+ * Request-side wiring: apply the body shaping (thinking strip + role fold)
+ * to /messages bodies only (mirrors the route scope in src/auth.ts). Returns
+ * `request` itself when there is nothing to change, so untouched requests
+ * keep flowing byte-identical.
  */
 export async function stripThinking(request: Request): Promise<Request> {
   let pathname: string
