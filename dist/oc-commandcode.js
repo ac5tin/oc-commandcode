@@ -8396,8 +8396,28 @@ var Resolved = durable({
 var Event16 = { Updated: Updated12, Resolved, Definitions: inventory(Updated12, Resolved) };
 // src/catalog.json
 var catalog_default = {
-  commandCodeVersion: "1.79.1",
+  commandCodeVersion: "1.84.0",
   models: [
+    {
+      id: "stealth/cat-jam:free",
+      name: "Cat Jam",
+      context: 1048576,
+      vision: false,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      output: 131072,
+      cost: {
+        input: 0,
+        output: 0,
+        cache_read: 0,
+        cache_write: 0
+      }
+    },
     {
       id: "claude-fable-5",
       name: "Claude Fable 5",
@@ -8414,7 +8434,8 @@ var catalog_default = {
         input: 10,
         output: 50,
         cache_read: 1,
-        cache_write: 12.5
+        cache_write: 12.5,
+        cache_write_1h: 20
       }
     },
     {
@@ -8433,7 +8454,8 @@ var catalog_default = {
         input: 10,
         output: 50,
         cache_read: 0.25,
-        cache_write: 12.5
+        cache_write: 12.5,
+        cache_write_1h: 20
       }
     },
     {
@@ -8446,7 +8468,8 @@ var catalog_default = {
         input: 1,
         output: 5,
         cache_read: 0.1,
-        cache_write: 1.25
+        cache_write: 1.25,
+        cache_write_1h: 2
       }
     },
     {
@@ -8465,7 +8488,8 @@ var catalog_default = {
         input: 0.1,
         output: 0.5,
         cache_read: 0.01,
-        cache_write: 0.125
+        cache_write: 0.125,
+        cache_write_1h: 0.2
       }
     },
     {
@@ -8484,7 +8508,8 @@ var catalog_default = {
         input: 5,
         output: 25,
         cache_read: 0.5,
-        cache_write: 6.25
+        cache_write: 6.25,
+        cache_write_1h: 10
       }
     },
     {
@@ -8503,7 +8528,8 @@ var catalog_default = {
         input: 5,
         output: 25,
         cache_read: 0.5,
-        cache_write: 6.25
+        cache_write: 6.25,
+        cache_write_1h: 10
       }
     },
     {
@@ -8522,7 +8548,8 @@ var catalog_default = {
         input: 5,
         output: 25,
         cache_read: 0.5,
-        cache_write: 6.25
+        cache_write: 6.25,
+        cache_write_1h: 10
       }
     },
     {
@@ -8541,7 +8568,8 @@ var catalog_default = {
         input: 4,
         output: 20,
         cache_read: 0.2,
-        cache_write: 5
+        cache_write: 5,
+        cache_write_1h: 8
       }
     },
     {
@@ -8561,7 +8589,8 @@ var catalog_default = {
         input: 3,
         output: 15,
         cache_read: 0.3,
-        cache_write: 3.75
+        cache_write: 3.75,
+        cache_write_1h: 6
       }
     },
     {
@@ -8581,7 +8610,8 @@ var catalog_default = {
         input: 2,
         output: 10,
         cache_read: 0.2,
-        cache_write: 2.5
+        cache_write: 2.5,
+        cache_write_1h: 4
       }
     },
     {
@@ -8600,8 +8630,9 @@ var catalog_default = {
       cost: {
         input: 2,
         output: 10,
-        cache_read: 0.2,
-        cache_write: 2.5
+        cache_read: 0.1,
+        cache_write: 2.5,
+        cache_write_1h: 4
       }
     },
     {
@@ -8837,6 +8868,23 @@ var catalog_default = {
       }
     },
     {
+      id: "google/gemini-4-argon",
+      name: "Gemini 4 Argon",
+      context: 1e6,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high"
+      ],
+      cost: {
+        input: 2,
+        output: 10,
+        cache_read: 0.1,
+        cache_write: 0
+      }
+    },
+    {
       id: "zai-org/GLM-5",
       name: "GLM-5",
       context: 200000,
@@ -8961,7 +9009,14 @@ var catalog_default = {
         "medium",
         "high",
         "xhigh"
-      ]
+      ],
+      cost: {
+        input: 2,
+        output: 8,
+        cache_read: 0.5,
+        cache_write: 0,
+        cache_write_1h: 0
+      }
     },
     {
       id: "gpt-5.4",
@@ -8973,7 +9028,14 @@ var catalog_default = {
         "medium",
         "high",
         "xhigh"
-      ]
+      ],
+      cost: {
+        input: 2.5,
+        output: 15,
+        cache_read: 0.25,
+        cache_write: 0,
+        cache_write_1h: 0
+      }
     },
     {
       id: "gpt-5.4-mini",
@@ -8984,7 +9046,14 @@ var catalog_default = {
         "low",
         "medium",
         "high"
-      ]
+      ],
+      cost: {
+        input: 0.75,
+        output: 4.5,
+        cache_read: 0.075,
+        cache_write: 0,
+        cache_write_1h: 0
+      }
     },
     {
       id: "gpt-5.5",
@@ -8996,7 +9065,14 @@ var catalog_default = {
         "medium",
         "high",
         "xhigh"
-      ]
+      ],
+      cost: {
+        input: 5,
+        output: 30,
+        cache_read: 0.5,
+        cache_write: 0,
+        cache_write_1h: 0
+      }
     },
     {
       id: "gpt-5.6-luna",
@@ -9066,7 +9142,14 @@ var catalog_default = {
         "high",
         "xhigh",
         "max"
-      ]
+      ],
+      cost: {
+        input: 10,
+        output: 50,
+        cache_read: 1,
+        cache_write: 12.5,
+        cache_write_1h: 0
+      }
     },
     {
       id: "gpt-6-luna",
@@ -9079,7 +9162,14 @@ var catalog_default = {
         "high",
         "xhigh",
         "max"
-      ]
+      ],
+      cost: {
+        input: 0.1,
+        output: 0.5,
+        cache_read: 0.01,
+        cache_write: 0.125,
+        cache_write_1h: 0
+      }
     },
     {
       id: "gpt-6-sol",
@@ -9092,7 +9182,14 @@ var catalog_default = {
         "high",
         "xhigh",
         "max"
-      ]
+      ],
+      cost: {
+        input: 2,
+        output: 10,
+        cache_read: 0.2,
+        cache_write: 2.5,
+        cache_write_1h: 0
+      }
     },
     {
       id: "gpt-6.1-sol",
@@ -9105,7 +9202,14 @@ var catalog_default = {
         "high",
         "xhigh",
         "max"
-      ]
+      ],
+      cost: {
+        input: 2,
+        output: 10,
+        cache_read: 0.1,
+        cache_write: 2.5,
+        cache_write_1h: 0
+      }
     },
     {
       id: "xai/grok-4.5",
@@ -9265,20 +9369,7 @@ var catalog_default = {
       }
     },
     {
-      id: "inclusionai/ling-3.0-flash-sante:free",
-      name: "Ling 3.0 Flash Sante",
-      context: 262144,
-      vision: false,
-      output: 32768,
-      cost: {
-        input: 0,
-        output: 0,
-        cache_read: 0,
-        cache_write: 0
-      }
-    },
-    {
-      id: "inclusionai/ling-3.1-flash:free",
+      id: "inclusionai/ling-3.1-flash",
       name: "Ling 3.1 Flash",
       context: 262144,
       vision: false,
@@ -9289,9 +9380,9 @@ var catalog_default = {
       ],
       output: 32768,
       cost: {
-        input: 0,
-        output: 0,
-        cache_read: 0,
+        input: 0.3,
+        output: 0.9,
+        cache_read: 0.06,
         cache_write: 0
       }
     },
@@ -9514,6 +9605,41 @@ var catalog_default = {
       }
     },
     {
+      id: "meta/muse-spark-open",
+      name: "Muse Spark Open",
+      context: 1048576,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high"
+      ],
+      cost: {
+        input: 1.25,
+        output: 4.25,
+        cache_read: 0.15,
+        cache_write: 0
+      }
+    },
+    {
+      id: "meta/muse-wonder-1.0",
+      name: "Muse Wonder",
+      context: 1048576,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      cost: {
+        input: 4,
+        output: 20,
+        cache_read: 0.2,
+        cache_write: 0
+      }
+    },
+    {
       id: "nvidia/nemotron-3-ultra-550b-a55b",
       name: "Nemotron 3 Ultra",
       context: 1e6,
@@ -9522,6 +9648,23 @@ var catalog_default = {
         input: 0.6,
         output: 2.4,
         cache_read: 0.12,
+        cache_write: 0
+      }
+    },
+    {
+      id: "nvidia/nemotron-3.5-super-vl",
+      name: "Nemotron 3.5 Super VL",
+      context: 262144,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high"
+      ],
+      cost: {
+        input: 0.2,
+        output: 0.5,
+        cache_read: 0.04,
         cache_write: 0
       }
     },
@@ -9634,6 +9777,24 @@ var catalog_default = {
         output: 6,
         cache_read: 0.25,
         cache_write: 0
+      }
+    },
+    {
+      id: "Qwen/Qwen3.8-Max-Prime",
+      name: "Qwen 3.8 Max Prime",
+      context: 1e6,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "xhigh"
+      ],
+      output: 131072,
+      cost: {
+        input: 4,
+        output: 12,
+        cache_read: 0.5,
+        cache_write: 5
       }
     },
     {
