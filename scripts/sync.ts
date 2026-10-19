@@ -58,7 +58,7 @@ async function main() {
   const models: CatalogEntry[] = extracted
     .filter((m) => liveIds.has(m.id))
     .map((m) => {
-      const cost = costs.get(m.id) ?? costs.get(`anthropic:${m.id}`)
+      const cost = costs.get(m.id)
       const remote = live.find((l) => l.id === m.id)
       const output = m.output ?? previous.get(m.id)
       return {

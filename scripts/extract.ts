@@ -10,6 +10,8 @@ export interface ExtractedCost {
   output: number
   cache_read: number
   cache_write: number
+  /** 1h cache-write tier; present only when upstream declares it. */
+  cache_write_1h?: number
 }
 
 /** Extract the balanced `{...}` object starting at `openIdx`. */
@@ -74,39 +76,83 @@ export function parseModelEntries(source: string): ExtractedModel[] {
 }
 
 /**
- * Pull the per-model cost map (input/output/cache-read/cache-write per million
- * tokens) out of the bundle. Claude keys arrive `anthropic:`-prefixed.
+ * Walk backward from `from` to the `{` opening the object enclosing it,
+ * skipping balanced inner `{...}` pairs.
  */
-export function parseCostMap(source: string): Map<string, ExtractedCost> {
-  const costs = new Map<string, ExtractedCost>()
-  const anchor = source.indexOf("inputCost:")
-  if (anchor === -1) return costs
+function findObjectStart(source: string, from: number): number {
+  let depth = 0
+  for (let i = from; i >= 0; i--) {
+    if (source[i] === "}") depth++
+    else if (source[i] === "{") {
+      if (depth === 0) return i
+      depth--
+    }
+  }
+  return -1
+}
 
-  const entryOpen = source.lastIndexOf("{", anchor)
-  const mapOpen = entryOpen === -1 ? -1 : source.lastIndexOf("{", entryOpen - 1)
-  if (mapOpen === -1) return costs
-
-  const blob = extractBalanced(source, mapOpen)
-  if (!blob.includes("inputCost:")) return costs
-
-  let json: Record<string, Record<string, number>>
+/** Parse one flat `pricing:{...}` object literal (numeric fields only). */
+function parsePricingObject(blob: string): ExtractedCost | undefined {
+  let json: Record<string, unknown>
   try {
     const normalized = blob
       .replace(/([{,])([A-Za-z_$][A-Za-z0-9_$]*)(:)/g, (_m, brace: string, key: string, colon: string) => `${brace}"${key}"${colon}`)
       .replace(/:(\s*)\.(\d)/g, (_m, space: string, digit: string) => `:${space}0.${digit}`)
-    json = JSON.parse(normalized) as typeof json
+    json = JSON.parse(normalized) as Record<string, unknown>
   } catch {
-    return costs
+    return undefined
+  }
+  if (typeof json.inputCost !== "number") return undefined
+  return {
+    input: json.inputCost,
+    output: typeof json.outputCost === "number" ? json.outputCost : 0,
+    cache_read: typeof json.cacheReadCost === "number" ? json.cacheReadCost : 0,
+    cache_write: typeof json.cacheWriteCost === "number" ? json.cacheWriteCost : 0,
+    ...(typeof json.cacheWrite1hCost === "number" ? { cache_write_1h: json.cacheWrite1hCost } : {}),
+  }
+}
+
+/**
+ * Pull per-model pricing (per-million tokens) out of the bundled live-models
+ * dataset: `{catalogVersion:"...",data:[{...,id,pricing:{inputCost,outputCost,
+ * cacheReadCost,cacheWriteCost,cacheWrite1hCost?},...}]}` whose entries carry
+ * `owned_by:"command-code"`. command-code 1.83 inlined pricing into these
+ * entries and deleted the old standalone `{"vendor/model":{inputCost:...}}`
+ * map; keys are the plain model ids, so no `anthropic:` prefixes anymore.
+ *
+ * Tiered `rates` (context-dependent pricing) are ignored — the catalog has
+ * only ever modeled base rates.
+ *
+ * Throws instead of returning an empty map when the dataset is missing or
+ * yields nothing: a silent empty map is exactly how the 1.83 restructure
+ * produced a 0%-coverage sync.
+ */
+export function parseCostMap(source: string): Map<string, ExtractedCost> {
+  const costs = new Map<string, ExtractedCost>()
+
+  let anchor = source.indexOf('owned_by:"command-code"')
+  if (anchor === -1) {
+    throw new Error(
+      'pricing dataset not found: no `owned_by:"command-code"` entries in the bundle (upstream shape changed again?)',
+    )
   }
 
-  for (const [id, raw] of Object.entries(json)) {
-    if (typeof raw?.inputCost !== "number") continue
-    costs.set(id, {
-      input: raw.inputCost,
-      output: typeof raw.outputCost === "number" ? raw.outputCost : 0,
-      cache_read: typeof raw.cacheReadCost === "number" ? raw.cacheReadCost : 0,
-      cache_write: typeof raw.cacheWriteCost === "number" ? raw.cacheWriteCost : 0,
-    })
+  while (anchor !== -1) {
+    const open = findObjectStart(source, anchor)
+    if (open !== -1) {
+      const blob = extractBalanced(source, open)
+      const id = blob.match(/[{,]id:"([^"]+)"/)?.[1]
+      const pricingIdx = blob.indexOf("pricing:{")
+      if (id && pricingIdx !== -1) {
+        const cost = parsePricingObject(extractBalanced(blob, blob.indexOf("{", pricingIdx)))
+        if (cost) costs.set(id, cost)
+      }
+    }
+    anchor = source.indexOf('owned_by:"command-code"', anchor + 1)
+  }
+
+  if (costs.size === 0) {
+    throw new Error("pricing dataset found but no entry had parseable pricing")
   }
   return costs
 }

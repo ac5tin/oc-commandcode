@@ -14,6 +14,8 @@ export interface CatalogEntry {
     output: number
     cache_read: number
     cache_write: number
+    /** 1h cache-write tier; carried from upstream, not yet consumed by cost calc. */
+    cache_write_1h?: number
   }
 }
 
