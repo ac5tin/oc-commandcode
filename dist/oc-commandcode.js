@@ -8396,11 +8396,11 @@ var Resolved = durable({
 var Event16 = { Updated: Updated12, Resolved, Definitions: inventory(Updated12, Resolved) };
 // src/catalog.json
 var catalog_default = {
-  commandCodeVersion: "1.84.0",
+  commandCodeVersion: "1.88.0",
   models: [
     {
-      id: "stealth/cat-jam:free",
-      name: "Cat Jam",
+      id: "reflection/beam:free",
+      name: "Beam 1.0",
       context: 1048576,
       vision: false,
       efforts: [
@@ -8708,7 +8708,7 @@ var catalog_default = {
     },
     {
       id: "deepseek/deepseek-v4.1-flash",
-      name: "DeepSeek V4.1 Flash",
+      name: "DeepSeek V4.1 Flash (latest)",
       context: 1e6,
       vision: true,
       efforts: [
@@ -8727,7 +8727,7 @@ var catalog_default = {
     },
     {
       id: "deepseek/deepseek-v4.1-flash-fast",
-      name: "DeepSeek V4.1 Flash Fast",
+      name: "DeepSeek V4.1 Flash Fast (latest)",
       context: 1e6,
       vision: true,
       efforts: [
@@ -9400,32 +9400,6 @@ var catalog_default = {
       }
     },
     {
-      id: "xiaomi/mimo-v2.5",
-      name: "MiMo V2.5",
-      context: 1e6,
-      vision: true,
-      output: 131072,
-      cost: {
-        input: 0.14,
-        output: 0.28,
-        cache_read: 0.0028,
-        cache_write: 0
-      }
-    },
-    {
-      id: "xiaomi/mimo-v2.5-pro",
-      name: "MiMo V2.5 Pro",
-      context: 1e6,
-      vision: false,
-      output: 131072,
-      cost: {
-        input: 0.435,
-        output: 0.87,
-        cache_read: 0.0036,
-        cache_write: 0
-      }
-    },
-    {
       id: "xiaomi/mimo-v2.6-flash",
       name: "MiMo V2.6 Flash",
       context: 1048576,
@@ -9492,6 +9466,25 @@ var catalog_default = {
         input: 0.3,
         output: 1.2,
         cache_read: 0.06,
+        cache_write: 0
+      }
+    },
+    {
+      id: "minimax/minimax-m3.1-flash",
+      name: "MiniMax M3.1 Flash",
+      context: 1e6,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      cost: {
+        input: 0.15,
+        output: 0.6,
+        cache_read: 0.015,
         cache_write: 0
       }
     },
@@ -9665,6 +9658,18 @@ var catalog_default = {
         input: 0.2,
         output: 0.5,
         cache_read: 0.04,
+        cache_write: 0
+      }
+    },
+    {
+      id: "ornith/ornith-1.5-122b",
+      name: "Ornith 1.5 122B",
+      context: 262144,
+      vision: true,
+      cost: {
+        input: 0.16,
+        output: 0.64,
+        cache_read: 0.02,
         cache_write: 0
       }
     },
