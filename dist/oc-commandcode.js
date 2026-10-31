@@ -8396,7 +8396,7 @@ var Resolved = durable({
 var Event16 = { Updated: Updated12, Resolved, Definitions: inventory(Updated12, Resolved) };
 // src/catalog.json
 var catalog_default = {
-  commandCodeVersion: "1.88.0",
+  commandCodeVersion: "1.88.2",
   models: [
     {
       id: "reflection/beam:free",
@@ -9212,6 +9212,26 @@ var catalog_default = {
       }
     },
     {
+      id: "gpt-6.1-terra",
+      name: "GPT-6.1 Terra",
+      context: 1050000,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      cost: {
+        input: 1,
+        output: 5,
+        cache_read: 0.05,
+        cache_write: 1.25,
+        cache_write_1h: 0
+      }
+    },
+    {
       id: "xai/grok-4.5",
       name: "Grok 4.5",
       context: 500000,
@@ -9352,6 +9372,23 @@ var catalog_default = {
         input: 3,
         output: 15,
         cache_read: 0.3,
+        cache_write: 0
+      }
+    },
+    {
+      id: "moonshotai/Kimi-K3.1-Pro",
+      name: "Kimi K3.1 Pro",
+      context: 1048576,
+      vision: true,
+      efforts: [
+        "low",
+        "high",
+        "max"
+      ],
+      cost: {
+        input: 2,
+        output: 10,
+        cache_read: 0.2,
         cache_write: 0
       }
     },
