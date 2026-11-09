@@ -8396,7 +8396,7 @@ var Resolved = durable({
 var Event16 = { Updated: Updated12, Resolved, Definitions: inventory(Updated12, Resolved) };
 // src/catalog.json
 var catalog_default = {
-  commandCodeVersion: "1.88.2",
+  commandCodeVersion: "1.88.5",
   models: [
     {
       id: "reflection/beam:free",
@@ -8636,6 +8636,26 @@ var catalog_default = {
       }
     },
     {
+      id: "stealth/crouton-alpha",
+      name: "Crouton Alpha",
+      context: 1048576,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      output: 943718,
+      cost: {
+        input: 0,
+        output: 0,
+        cache_read: 0,
+        cache_write: 0
+      }
+    },
+    {
       id: "deepseek/deepseek-v4-flash",
       name: "DeepSeek V4 Flash (latest)",
       context: 1e6,
@@ -8741,6 +8761,24 @@ var catalog_default = {
         input: 0.16,
         output: 0.58,
         cache_read: 0.016,
+        cache_write: 0
+      }
+    },
+    {
+      id: "deepseek/deepseek-v4.1-flash-ultrafast",
+      name: "DeepSeek V4.1 Flash Ultrafast",
+      context: 1048576,
+      vision: true,
+      efforts: [
+        "off",
+        "low",
+        "high",
+        "max"
+      ],
+      cost: {
+        input: 2.4,
+        output: 9.6,
+        cache_read: 0.048,
         cache_write: 0
       }
     },
@@ -9393,19 +9431,6 @@ var catalog_default = {
       }
     },
     {
-      id: "poolside/laguna-s-2.1-free",
-      name: "Laguna S 2.1",
-      context: 256000,
-      vision: false,
-      output: 32768,
-      cost: {
-        input: 0,
-        output: 0,
-        cache_read: 0,
-        cache_write: 0
-      }
-    },
-    {
       id: "inclusionai/ling-3.1-flash",
       name: "Ling 3.1 Flash",
       context: 262144,
@@ -9416,6 +9441,24 @@ var catalog_default = {
         "high"
       ],
       output: 32768,
+      cost: {
+        input: 0.3,
+        output: 0.9,
+        cache_read: 0.06,
+        cache_write: 0
+      }
+    },
+    {
+      id: "inclusionai/ling-3.1-flash-1019",
+      name: "Ling 3.1 Flash 1019",
+      context: 1e6,
+      vision: false,
+      efforts: [
+        "low",
+        "medium",
+        "high"
+      ],
+      output: 262144,
       cost: {
         input: 0.3,
         output: 0.9,
