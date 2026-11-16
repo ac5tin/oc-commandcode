@@ -8396,28 +8396,8 @@ var Resolved = durable({
 var Event16 = { Updated: Updated12, Resolved, Definitions: inventory(Updated12, Resolved) };
 // src/catalog.json
 var catalog_default = {
-  commandCodeVersion: "1.88.5",
+  commandCodeVersion: "1.89.1",
   models: [
-    {
-      id: "reflection/beam:free",
-      name: "Beam 1.0",
-      context: 1048576,
-      vision: false,
-      efforts: [
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max"
-      ],
-      output: 131072,
-      cost: {
-        input: 0,
-        output: 0,
-        cache_read: 0,
-        cache_write: 0
-      }
-    },
     {
       id: "claude-fable-5",
       name: "Claude Fable 5",
@@ -8456,6 +8436,26 @@ var catalog_default = {
         cache_read: 0.25,
         cache_write: 12.5,
         cache_write_1h: 20
+      }
+    },
+    {
+      id: "claude-fable-5-2",
+      name: "Claude Fable 5.2",
+      context: 1e6,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      cost: {
+        input: 8,
+        output: 40,
+        cache_read: 0.2,
+        cache_write: 10,
+        cache_write_1h: 16
       }
     },
     {
@@ -8633,26 +8633,6 @@ var catalog_default = {
         cache_read: 0.1,
         cache_write: 2.5,
         cache_write_1h: 4
-      }
-    },
-    {
-      id: "stealth/crouton-alpha",
-      name: "Crouton Alpha",
-      context: 1048576,
-      vision: true,
-      efforts: [
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max"
-      ],
-      output: 943718,
-      cost: {
-        input: 0,
-        output: 0,
-        cache_read: 0,
-        cache_write: 0
       }
     },
     {
@@ -8908,6 +8888,23 @@ var catalog_default = {
     {
       id: "google/gemini-4-argon",
       name: "Gemini 4 Argon",
+      context: 1e6,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high"
+      ],
+      cost: {
+        input: 2,
+        output: 10,
+        cache_read: 0.1,
+        cache_write: 0
+      }
+    },
+    {
+      id: "google/gemini-4-carbon",
+      name: "Gemini 4 Carbon",
       context: 1e6,
       vision: true,
       efforts: [
@@ -9335,6 +9332,25 @@ var catalog_default = {
       }
     },
     {
+      id: "thinkingmachines/inkling-2-small:free",
+      name: "Inkling 2 Small",
+      context: 1048576,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "max"
+      ],
+      output: 131072,
+      cost: {
+        input: 0,
+        output: 0,
+        cache_read: 0,
+        cache_write: 0
+      }
+    },
+    {
       id: "thinkingmachines/inkling-small",
       name: "Inkling Small",
       context: 1e6,
@@ -9583,6 +9599,25 @@ var catalog_default = {
         input: 1.36,
         output: 4.18,
         cache_read: 0.14,
+        cache_write: 0
+      }
+    },
+    {
+      id: "meta/muse-ember",
+      name: "Muse Ember",
+      context: 1048576,
+      vision: true,
+      efforts: [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      cost: {
+        input: 0.1,
+        output: 0.5,
+        cache_read: 0.004,
         cache_write: 0
       }
     },
